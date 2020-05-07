@@ -19,5 +19,10 @@
         /// MySql
         /// </summary>
         public const string MYSQL = "mysql";
+
+        /// <summary>
+        /// Snowflake
+        /// </summary>
+        public const string SNOWFLAKE = "snowflake";
     }
 }

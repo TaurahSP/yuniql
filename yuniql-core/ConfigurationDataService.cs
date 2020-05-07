@@ -57,7 +57,7 @@ namespace Yuniql.Core
             var sqlStatement = _tokenReplacementService.Replace(tokens, _dataService.GetSqlForCheckIfDatabaseExists());
             using (var connection = _dataService.CreateMasterConnection())
             {
-                return connection.QuerySingleBool(
+                return connection.QueryHasRow(
                     commandText: sqlStatement,
                     commandTimeout: commandTimeout,
                     transaction: null,
@@ -239,7 +239,7 @@ namespace Yuniql.Core
         {
             var toolName = string.IsNullOrEmpty(appliedByTool) ? "yuniql-nuget" : appliedByTool;
             var toolVersion = string.IsNullOrEmpty(appliedByToolVersion) ? this.GetType().Assembly.GetName().Version.ToString() : appliedByToolVersion;
-            var sqlStatement = string.Format(GetPreparedSqlStatement(_dataService.GetSqlForInsertVersion(), schemaName, tableName), version, toolName, $"v{toolVersion}");
+            var sqlStatement = string.Format(GetPreparedSqlStatement(_dataService.GetSqlForInsertVersion(), schemaName, tableName), version, DateTime.UtcNow, toolName, $"v{toolVersion}");
 
             if (null != _traceService)
                 _traceService.Debug($"Executing statement: {Environment.NewLine}{sqlStatement}");
