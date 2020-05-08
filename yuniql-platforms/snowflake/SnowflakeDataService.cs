@@ -108,11 +108,4 @@ namespace Yuniql.Snowflake
         public string GetSqlForInsertVersion()
             => "INSERT INTO \"${YUNIQL_DB_NAME}\".\"${YUNIQL_SCHEMA_NAME}\".\"${YUNIQL_TABLE_NAME}\" (\"Version\", \"AppliedOnUtc\", \"AppliedByTool\", \"AppliedByToolVersion\") VALUES ('{0}','{1}','{2}', '{3}');";
     }
-
-    public static class StringExtensions
-    {
-        public static string Quote(this string str) {
-            return $"\"{str}\"";
-        }
-    }
 }
