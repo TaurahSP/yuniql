@@ -24,11 +24,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Snowflake.Data" Version="1.1.2" />
+    <ProjectReference Include="..\..\yuniql-extensibility\Yuniql.Extensibility.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\yuniql-extensibility\Yuniql.Extensibility.csproj" />
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Snowflake.Data.Unofficial" Version="1.1.2" />
   </ItemGroup>
 
 </Project>
