@@ -66,22 +66,34 @@ namespace Yuniql.Snowflake
             string delimiter = null)
         {
             var sqlStatement = new StringBuilder();
+            var nullValue = "NULL";
+            var nullValueDoubleQuoted = "NULL".DoubleQuote();
+            var nullValueQuoted = "NULL".Quote();
 
             if (string.IsNullOrEmpty(delimiter))
                 delimiter = ",";
+
+            //prepare local constants for optimal conditional evaluation
 
             using (var csvReader = new CsvTextFieldParser(csvFileFullPath))
             {
                 csvReader.Delimiters = (new string[] { delimiter });
                 csvReader.HasFieldsEnclosedInQuotes = true;
 
-                string[] csvColumns = csvReader.ReadFields();
-                sqlStatement.Append($"INSERT INTO \"{schemaName}\".\"{tableName}\" ({string.Join(",", csvColumns)}) {Environment.NewLine}");
+                //enclose all column names into double quote for case-sensitivity
+                var csvColumns = csvReader.ReadFields().Select(f => f.DoubleQuote());
+
+                sqlStatement.Append($"INSERT INTO {schemaName.DoubleQuote()}.{tableName.DoubleQuote()} ({string.Join(",", csvColumns)}) {Environment.NewLine}");
                 sqlStatement.AppendFormat("VALUES {0}", Environment.NewLine);
 
                 while (!csvReader.EndOfData)
                 {
-                    var fieldData = csvReader.ReadFields().Select(s=> s.Quote());
+                    var fieldData = csvReader.ReadFields().Select(s =>
+                    {
+                        if (string.IsNullOrEmpty(s) || s == nullValue || s == nullValueDoubleQuoted || s == nullValueQuoted)
+                            return nullValue;
+                        return s.Quote();
+                    });
                     sqlStatement.Append($"{Environment.NewLine}({string.Join(",", fieldData)}),");
                 }
             }

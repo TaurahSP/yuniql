@@ -191,5 +191,10 @@ DROP PROCEDURE script2;
 DROP PROCEDURE script3;
 ";
         }
+
+        public override void DropDatabase(string connectionString)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -2,6 +2,7 @@
 using Yuniql.Core;
 using Yuniql.MySql;
 using Yuniql.PostgreSql;
+using Yuniql.Snowflake;
 using Yuniql.SqlServer;
 
 namespace Yuniql.PlatformTests
@@ -31,6 +32,10 @@ namespace Yuniql.PlatformTests
                 case SUPPORTED_DATABASES.MYSQL:
                     {
                         return new MySqlTestDataService(new MySqlDataService(traceService), tokenReplacementService);
+                    }
+                case SUPPORTED_DATABASES.SNOWFLAKE:
+                    {
+                        return new SnowflakeTestDataService(new SnowflakeDataService(traceService), tokenReplacementService);
                     }
                 default:
                     throw new NotSupportedException($"The target database platform {platform} is not supported or plugins location was not correctly configured. " +

@@ -11,7 +11,11 @@ namespace Yuniql.PlatformTests
 
         List<DbVersion> GetAllDbVersions(string connectionString);
 
+        void ExecuteNonQuery(string connectionString, string sqlStatement);
+
         bool QuerySingleBool(string connectionString, string sqlStatement);
+
+        bool QueryHasRow(string connectionString, string sqlStatement);
 
         string QuerySingleString(string connectionString, string sqlStatement);
 
@@ -52,5 +56,9 @@ namespace Yuniql.PlatformTests
         string SchemaName { get; }
 
         List<BulkTestDataRow> GetBulkTestData(string connectionString, string tableName);
+
+        public void DropDatabase(string connectionString);
+
+        string GetSqlForGetBulkTestData(string tableName);
     }
 }

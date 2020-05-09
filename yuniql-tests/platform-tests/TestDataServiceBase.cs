@@ -26,13 +26,31 @@ namespace Yuniql.PlatformTests
         public virtual string TableName => _dataService.TableName;
 
         public virtual string SchemaName => _dataService.SchemaName;
-        
+
+        public virtual void ExecuteNonQuery(string connectionString, string sqlStatement)
+        {
+            _dataService.Initialize(connectionString);
+            using (var connection = _dataService.CreateConnection().KeepOpen())
+            {
+                connection.ExecuteNonQuery(sqlStatement);
+            }
+        }
+
         public virtual bool QuerySingleBool(string connectionString, string sqlStatement)
         {
             _dataService.Initialize(connectionString);
             using (var connection = _dataService.CreateConnection().KeepOpen())
             {
                 return connection.QuerySingleBool(sqlStatement);
+            }
+        }
+
+        public virtual bool QueryHasRow(string connectionString, string sqlStatement)
+        {
+            _dataService.Initialize(connectionString);
+            using (var connection = _dataService.CreateConnection().KeepOpen())
+            {
+                return connection.QueryHasRow(sqlStatement);
             }
         }
 
@@ -89,10 +107,9 @@ namespace Yuniql.PlatformTests
             {
                 connection.Open();
 
-                var sqlStatement = $"SELECT * FROM {tableName};";
                 var command = connection.CreateCommand();
                 command.CommandType = CommandType.Text;
-                command.CommandText = sqlStatement;
+                command.CommandText = GetSqlForGetBulkTestData(tableName);
                 command.CommandTimeout = 0;
 
                 using (var reader = command.ExecuteReader())
@@ -152,5 +169,10 @@ namespace Yuniql.PlatformTests
             return _tokenReplacementService.Replace(tokens, sqlStatement);
         }
 
+        public abstract void DropDatabase(string connectionString);
+
+        public virtual string GetSqlForGetBulkTestData(string tableName) {
+            return $"SELECT * FROM {tableName};";
+        }
     }
 }

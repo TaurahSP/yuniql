@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
 using System.Diagnostics;
 using System.IO;
 
@@ -10,24 +11,46 @@ namespace Yuniql.PlatformTests
     {
         private TestConfiguration _testConfiguration;
         private CliExecutionService _executionService;
+        private ITestDataService _testDataService;
 
         public void SetupWithEmptyWorkspace()
         {
             _testConfiguration = base.ConfigureWithEmptyWorkspace();
             _executionService = new CliExecutionService(_testConfiguration.CliProcessPath);
+
+            //create test data service provider
+            var testDataServiceFactory = new TestDataServiceFactory();
+            _testDataService = testDataServiceFactory.Create(_testConfiguration.Platform);
+
         }
 
         public void SetupWorkspaceWithSampleDb()
         {
             _testConfiguration = base.ConfigureWorkspaceWithSampleDb();
             _executionService = new CliExecutionService(_testConfiguration.CliProcessPath);
+
+            //create test data service provider
+            var testDataServiceFactory = new TestDataServiceFactory();
+            _testDataService = testDataServiceFactory.Create(_testConfiguration.Platform);
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            if (Directory.Exists(_testConfiguration.WorkspacePath))
-                Directory.Delete(_testConfiguration.WorkspacePath, true);
+            //drop the test directory
+            try
+            {
+                if (Directory.Exists(_testConfiguration.WorkspacePath))
+                    Directory.Delete(_testConfiguration.WorkspacePath, true);
+            }
+            catch (Exception) { /*swallow exceptions*/ }
+
+            try
+            {
+                //drop test database
+                _testDataService.DropDatabase(_testConfiguration.ConnectionString);
+            }
+            catch (Exception) { /*swallow exceptions*/ }
         }
 
         [DataTestMethod]

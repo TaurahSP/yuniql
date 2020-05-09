@@ -1,5 +1,4 @@
 ﻿using Snowflake.Data.Client;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -28,6 +27,24 @@ namespace Yuniql.Snowflake
             var connection = new SnowflakeDbConnection();
             connection.ConnectionString = _connectionString;
 
+            //replace original database name with quoted name for case-sensitivity
+            //by default snowflake converts all object identifies into upper case unless it is enclosed in double quote
+            //do not rebuild the connection string because it will add single quote to the value
+            //https://docs.snowflake.com/en/sql-reference/identifiers-syntax.html
+            var connectionStringBuilder = new SnowflakeDbConnectionStringBuilder();
+            connectionStringBuilder.ConnectionString = _connectionString;
+            connectionStringBuilder.TryGetValue("db", out object result);
+
+            //db name is empty when checking if the database exists
+            if (null != result) {
+                var databaseName = result.ToString();
+                if (!databaseName.ToString().IsDoubleQuoted())
+                {
+                    var modifiedConnectionString = _connectionString.Replace(databaseName, databaseName.DoubleQuote());
+                    connection.ConnectionString = modifiedConnectionString;
+                }
+            }
+
             return connection;
         }
 
@@ -35,12 +52,14 @@ namespace Yuniql.Snowflake
         {
             var connectionStringBuilder = new SnowflakeDbConnectionStringBuilder();
             connectionStringBuilder.ConnectionString = _connectionString;
+
+            //remove existing db & schema from connection string parameters
+            //this is necessary to avoid connection errors as it will attempt to connect to non-existing database
             connectionStringBuilder.Remove("db");
             connectionStringBuilder.Remove("schema");
 
             var connection = new SnowflakeDbConnection();
             connection.ConnectionString = connectionStringBuilder.ConnectionString;
-
             return connection;
         }
 
@@ -49,16 +68,16 @@ namespace Yuniql.Snowflake
             var connectionStringBuilder = new SnowflakeDbConnectionStringBuilder();
             connectionStringBuilder.ConnectionString = _connectionString;
 
-            object dataSource;
-            connectionStringBuilder.TryGetValue("host", out dataSource);
+            //extract the server information
+            connectionStringBuilder.TryGetValue("host", out object dataSource);
 
-            object database;
-            connectionStringBuilder.TryGetValue("db", out database);
+            //extract the database name
+            connectionStringBuilder.TryGetValue("db", out object database);
 
             return new ConnectionInfo { DataSource = dataSource?.ToString(), Database = database?.ToString() };
         }
 
-        public bool IsAtomicDDLSupported => true;
+        public bool IsAtomicDDLSupported => false;
 
         public bool IsSchemaSupported { get; } = true;
 
@@ -75,7 +94,6 @@ namespace Yuniql.Snowflake
         }
 
         public string GetSqlForCheckIfDatabaseExists()
-            //=> "SELECT 1 WHERE EXISTS (SELECT * FROM INFORMATION_SCHEMA.DATABASES WHERE DATABASE_NAME = '${YUNIQL_DB_NAME}');";
             => "SHOW DATABASES LIKE '${YUNIQL_DB_NAME}';";
 
         public string GetSqlForCreateDatabase()

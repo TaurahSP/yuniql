@@ -34,8 +34,20 @@ namespace Yuniql.PlatformTests
         [TestCleanup]
         public void Cleanup()
         {
-            if (Directory.Exists(_testConfiguration.WorkspacePath))
-                Directory.Delete(_testConfiguration.WorkspacePath, true);
+            //drop the test directory
+            try
+            {
+                if (Directory.Exists(_testConfiguration.WorkspacePath))
+                    Directory.Delete(_testConfiguration.WorkspacePath, true);
+            }
+            catch (Exception) { /*swallow exceptions*/ }
+
+            try
+            {
+                //drop test database
+                _testDataService.DropDatabase(_testConfiguration.ConnectionString);
+            }
+            catch (Exception) { /*swallow exceptions*/ }
         }
 
         [TestMethod]
